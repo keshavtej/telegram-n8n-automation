@@ -1,0 +1,71 @@
+{
+  "name": "Telegram Notes & Calendar Brain",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": ["message"]
+      },
+      "id": "1a2b3c4d",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are a highly precise parsing assistant. Categorize the user's input as either 'calendar' or 'note'. If calendar, extract 'title', 'start', and 'end' (in ISO format). If note, extract 'note_content'. Output strictly as a flat JSON object. The current date and time is: {{ $now }}."
+            },
+            {
+              "role": "user",
+              "message": "={{ $json.message.text }}"
+            }
+          ]
+        }
+      },
+      "id": "5e6f7g8h",
+      "name": "AI Parser",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.type }}",
+        "rules": {
+          "rules": [
+            {
+              "value2": "calendar",
+              "output": 0
+            },
+            {
+              "value2": "note",
+              "output": 1
+            }
+          ]
+        }
+      },
+      "id": "9i0j1k2l",
+      "name": "Router (Switch)",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [700, 300]
+    }
+  ],
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [{"node": "AI Parser", "type": "main", "index": 0}]
+      ]
+    },
+    "AI Parser": {
+      "main": [
+        [{"node": "Router (Switch)", "type": "main", "index": 0}]
+      ]
+    }
+  }
+}
